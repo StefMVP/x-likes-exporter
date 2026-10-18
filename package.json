@@ -1,0 +1,21 @@
+{
+  "name": "@stefmvp/twitter-extractor",
+  "version": "0.1.0",
+  "private": true,
+  "license": "MIT",
+  "repository": { "type": "git", "url": "git+https://github.com/StefMVP/x-likes-exporter.git" },
+  "description": "Save daily X liked-post snapshots with read-only OAuth and an offline digest",
+  "type": "module",
+  "exports": "./src/index.mjs",
+  "bin": { "twitter-extractor": "./bin/twitter-extractor.mjs" },
+  "files": ["src", "bin", "scripts", "README.md"],
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "connect": "bash scripts/connect.sh",
+    "sync": "node bin/twitter-extractor.mjs likes",
+    "digest": "node bin/twitter-extractor.mjs digest",
+    "test": "node --test",
+    "schedule": "node scripts/install-timer.mjs"
+  },
+  "dependencies": { "twitter-api-v2": "1.29.1" }
+}

@@ -1,0 +1,12 @@
+node_modules/
+.worktrees/
+data/
+proof/
+screenshots/
+.playwright-cli/
+*.tgz
+*.zip
+.env
+.env.*
+*-oauth.json
+*.tmp
