@@ -12,11 +12,14 @@ const { values } = parseArgs({ options: {
   at: { type: 'string', default: '07:00' },
   'auth-file': { type: 'string' },
   'output-dir': { type: 'string' },
+  'backup-dir': { type: 'string' },
 } });
 new Intl.DateTimeFormat('en-US', { timeZone: values['time-zone'] });
 if (!/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(values.at)) throw new Error('Use --at HH:MM in 24-hour time.');
 const authFile = values['auth-file'] ? resolve(values['auth-file']) : defaultAuthFile;
 const outputDir = values['output-dir'] ? resolve(values['output-dir']) : defaultOutputDir;
+const backupDir = values['backup-dir'] ? resolve(values['backup-dir']) : null;
+if (backupDir === outputDir) throw new Error('Use a backup folder outside --output-dir.');
 // Check the selected credentials before replacing a working schedule. An expired
 // access token is valid here: the next run will use the stored refresh token.
 await createAuthStore(authFile).load();
@@ -26,6 +29,9 @@ const quote = value => '"' + value.replaceAll('\\', '\\\\').replaceAll('"', '\\"
 const command = [process.execPath, join(root, 'bin/twitter-extractor.mjs'), 'likes',
   '--auth-file', authFile, '--output-dir', outputDir,
   '--time-zone', values['time-zone']].map(quote).join(' ');
+const backup = backupDir
+  ? `ExecStartPost=${[join(root, 'scripts/backup.sh'), outputDir, backupDir].map(quote).join(' ')}\n`
+  : '';
 // Check calendar syntax before writing or enabling any unit.
 const calendar = `*-*-* ${values.at}:00 ${values['time-zone']}`;
 execFileSync('systemd-analyze', ['calendar', calendar], { stdio: 'pipe' });
@@ -37,7 +43,7 @@ StartLimitIntervalSec=0
 [Service]
 Type=oneshot
 ExecStart=${command}
-UMask=0077
+${backup}UMask=0077
 TimeoutStartSec=90
 Restart=on-failure
 RestartSec=5min
@@ -59,3 +65,4 @@ execFileSync('systemctl', ['--user', 'enable', '--now', 'twitter-extractor.timer
 execFileSync('systemctl', ['--user', 'restart', 'twitter-extractor.timer'], { stdio: 'inherit' });
 console.log(`Daily X read enabled at ${values.at} ${values['time-zone']}, with a startup check and retries every five minutes after failure.`);
 console.log(`Credentials: ${authFile}\nSnapshots: ${outputDir}`);
+if (backupDir) console.log(`Backup: ${backupDir}`);

@@ -42,6 +42,14 @@ npm run schedule
 
 This runs each day at 07:00 in `America/Chicago`. Keep the project folder and Node.js installation at the same paths.
 
+To copy each snapshot to a mounted backup drive, add the drive folder. The copy also removes files that no longer exist in the export folder:
+
+```bash
+npm run schedule -- --backup-dir /mnt/data/twitter-extractor-backup
+```
+
+The copy refuses to run when the drive is not mounted, so an unmounted drive cannot fill the system disk. Check the last copy in `~/.local/state/twitter-extractor/backup-status.json`.
+
 To stop it:
 
 ```bash
